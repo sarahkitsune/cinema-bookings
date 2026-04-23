@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// USERS
+model User {
+  id              Int     @id @default(autoincrement())
+  email           String  @unique
+  name            String?
+  password        String
+  role            Role    @default(USER)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  bookings        Booking[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// MOVIES
+model Movie {
+  id              Int     @id @default(autoincrement())
+  title           String
+  description     String?
+  duration        Int     // Duration in minutes
+  createdAt       DateTime @default(now())
+  performances    Performance[]
+}
+
+// ROOMS
+model Room {
+  id              Int     @id @default(autoincrement())
+  name            String
+  capacity        Int
+  seats           Seat[]
+  performances    Performance[]
+}
+
+// SEATS
+model Seat {
+  id              Int     @id @default(autoincrement())
+  row             String
+  number          Int
+  roomId          Int
+  price           Decimal @db.Decimal(6, 2)
+  type            SeatType @default(REGULAR)
+  room            Room    @relation(fields: [roomId], references: [id])
+  performanceSeats PerformanceSeat[]
+}
+
+enum SeatType {
+  REGULAR
+  VIP
+}
+
+// PERFORMANCES
+model Performance {
+  id              Int     @id @default(autoincrement())
+  movieId         Int
+  roomId          Int
+  startTime       DateTime
+  endTime         DateTime
+  movie           Movie   @relation(fields: [movieId], references: [id])
+  room            Room    @relation(fields: [roomId], references: [id])
+  bookings        Booking[]
+  performanceSeats PerformanceSeat[]
+}
+
+// PERFORMANCE SEATS
+model PerformanceSeat {
+  id              Int     @id @default(autoincrement())
+  performanceId   Int
+  bookingId       Int?
+  seatId          Int
+  status          PerformanceSeatStatus @default(FREE)
+  performance     Performance @relation(fields: [performanceId], references: [id])
+  seat            Seat        @relation(fields: [seatId], references: [id])
+  booking         Booking?    @relation(fields: [bookingId], references: [id])
+
+  @@unique([performanceId, seatId])
+}
+
+enum PerformanceSeatStatus {
+  FREE
+  BLOCKED
+  BOOKED
+}
+
+// BOOKINGS
+model Booking {
+  id              Int     @id @default(autoincrement())
+  userId          Int
+  performanceId   Int
+  createdAt       DateTime @default(now())
+  status          BookingStatus @default(CONFIRMED)
+  user            User    @relation(fields: [userId], references: [id])
+  performance     Performance @relation(fields: [performanceId], references: [id])
+  performanceSeats PerformanceSeat[]
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+
