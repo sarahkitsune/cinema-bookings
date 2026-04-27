@@ -1,18 +1,13 @@
-// import { useState } from 'react'
+import { createBrowserRouter } from "react-router";
+import { RouterProvider } from "react-router/dom";
+import routes from "./routes";
 
-import Button from './components/Button'
-import './App.css'
+const router = createBrowserRouter(routes);
 
 function App() {
-  
-
   return (
-    <div className="App">
-      <h1>Cinema Bookings by Kitsune</h1>
-      <p>Welcome to the cinema booking system!</p>
-      <Button text="Book Now" onClick={() => alert('Booking functionality coming soon!')} />
-    </div>
-  )
+    <RouterProvider router={router} />
+  );
 }
 
-export default App
+export default App;
